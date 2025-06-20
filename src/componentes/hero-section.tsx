@@ -63,15 +63,11 @@ export default function HeroSection() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 text-lg font-semibold">
+              <a href="#tiendas">
+              <Button variant="outline" className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 text-lg font-semibold">
                 Explorar Tiendas
               </Button>
-              <Button
-                variant="outline"
-                className="border-2 border-cyan-400/50 text-cyan-300 hover:bg-cyan-400/10 hover:border-cyan-300 px-8 py-4 rounded-full text-lg backdrop-blur-sm"
-              >
-                Ver Demo
-              </Button>
+              </a>
             </div>
           </div>
 

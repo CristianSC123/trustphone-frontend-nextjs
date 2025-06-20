@@ -4,7 +4,7 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { X, Upload, QrCode, Calendar, Clock, CheckCircle } from "lucide-react"
+import { X, Upload, QrCode, Calendar, Clock, CheckCircle, Shield } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import type { Phone } from "@/../types/phone"
@@ -152,6 +152,10 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 mr-2" />
                     <span>Reserva válida por 24 horas</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Shield className="w-4 h-4 mr-2" />
+                    <span className="font-bold italic">Nota: Las reservas solo se hacen con un adelanto de Bs 100</span>
                   </div>
                 </div>
               </div>
