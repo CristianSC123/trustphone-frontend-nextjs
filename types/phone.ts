@@ -15,6 +15,7 @@ export interface Phone {
   activo: boolean
   marca: string
   tienda: string
+  estado_venta: number
   vendedor: string
 }
 

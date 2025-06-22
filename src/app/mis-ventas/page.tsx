@@ -55,7 +55,7 @@ const mockVentas = [
 
 export default function MisVentasPage() {
   const [user, setUser] = useState<any>(null)
-  const [ventas, setVentas] = useState(mockVentas)
+  const [ventas] = useState(mockVentas)
 
   useEffect(() => {
     const userData = localStorage.getItem("user_data")

@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Package, Calendar, DollarSign, Eye } from "lucide-react"
+import { Package, Calendar, DollarSign, Eye } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import Header from "@/componentes/header"
+import ReciboModal from "@/componentes/recibo-modal"
 
 interface Celular {
   id_celular: string
@@ -61,6 +63,8 @@ export default function MisComprasPage() {
   const [user, setUser] = useState<any>(null)
   const [ventas, setVentas] = useState<Venta[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedVenta, setSelectedVenta] = useState<{ clienteId: string; ventaId: string } | null>(null)
+  const [isReciboModalOpen, setIsReciboModalOpen] = useState(false)
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user_data")
@@ -135,6 +139,13 @@ export default function MisComprasPage() {
     })
   }
 
+  const handleVerRecibo = (ventaId: string) => {
+    if (user?.id) {
+      setSelectedVenta({ clienteId: user.id, ventaId })
+      setIsReciboModalOpen(true)
+    }
+  }
+
   // Calcular estadísticas
   const totalCompras = ventas.reduce((total, venta) => total + venta.detalle_venta.length, 0)
   const totalGastado = ventas.reduce((total, venta) => total + Number.parseFloat(venta.total), 0)
@@ -169,24 +180,7 @@ export default function MisComprasPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver al inicio
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mis Compras</h1>
-              <p className="text-gray-600">Hola {user.nombre}, aquí puedes ver el historial de tus compras</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Total de productos</p>
-              <p className="text-2xl font-bold text-blue-600">{totalCompras}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Header />
 
       {/* Stats */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -219,7 +213,7 @@ export default function MisComprasPage() {
                 <Calendar className="w-8 h-8 text-purple-600 mr-3" />
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{totalEntregados}</p>
-                  <p className="text-sm text-gray-600">Entregados</p>
+                  <p className="text-sm text-gray-600">Recogidos</p>
                 </div>
               </div>
             </CardContent>
@@ -253,7 +247,8 @@ export default function MisComprasPage() {
                     >
                       <Image
                         src={
-                          `http://127.0.0.1:8000${detalle.celular.imagenes}` || "/placeholder.svg?height=80&width=80"
+                          `http://127.0.0.1:8000${detalle.celular.imagenes || "/placeholder.svg"}` ||
+                          "/placeholder.svg?height=80&width=80"
                         }
                         alt={detalle.celular.modelo}
                         width={80}
@@ -284,9 +279,9 @@ export default function MisComprasPage() {
                 </div>
 
                 <div className="flex justify-end mt-4 pt-4 border-t border-gray-100">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleVerRecibo(venta.id_venta)}>
                     <Eye className="w-4 h-4 mr-2" />
-                    Ver Detalles
+                    Ver Recibo
                   </Button>
                 </div>
               </CardContent>
@@ -307,7 +302,17 @@ export default function MisComprasPage() {
           </Card>
         )}
       </div>
+      {selectedVenta && (
+        <ReciboModal
+          isOpen={isReciboModalOpen}
+          onClose={() => {
+            setIsReciboModalOpen(false)
+            setSelectedVenta(null)
+          }}
+          clienteId={selectedVenta.clienteId}
+          ventaId={selectedVenta.ventaId}
+        />
+      )}
     </div>
   )
 }
-

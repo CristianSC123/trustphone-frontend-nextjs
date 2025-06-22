@@ -78,10 +78,16 @@ export default function PhoneCardApi({ phone }: PhoneCardApiProps) {
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {phone.activo && (
+            {phone.estado_venta === 0 && (
               <Badge className="bg-green-500 text-white text-xs hover:bg-green-500">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Disponible
+              </Badge>
+            )}
+            {phone.estado_venta === 2 && (
+              <Badge className="bg-yellow-500 text-white text-xs hover:bg-yellow-500">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Reservado
               </Badge>
             )}
             {discountPercentage > 0 && (
@@ -160,11 +166,11 @@ export default function PhoneCardApi({ phone }: PhoneCardApiProps) {
           <div className="flex gap-2">
             <Button
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50"
-              disabled={!phone.activo}
+              disabled={phone.estado_venta !== 0}
               onClick={() => setShowReservationModal(true)}
             >
               <Calendar className="w-4 h-4 mr-2" />
-              {phone.activo ? "Reservar" : "No Disponible"}
+              {phone.estado_venta === 0 ? "Reservar" : "No Disponible"}
             </Button>
             <Button
               variant="outline"

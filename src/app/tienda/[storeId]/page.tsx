@@ -2,11 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Store, Star, MapPin, PhoneIcon, Filter, Loader2 } from "lucide-react"
+import { Store, Star, MapPin, PhoneIcon, Filter, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import PhoneCardApi from "@/componentes/phone-card-api"
 import type { Phone, Store as StoreType } from "@/../types/phone"
+import Header from "@/componentes/header"
 
 interface StorePageProps {
   params: {
@@ -92,13 +93,10 @@ export default function StorePage({ params }: StorePageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <Header />
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver al inicio
-          </Link>
+        
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="flex items-center mb-4 md:mb-0">
@@ -141,7 +139,7 @@ export default function StorePage({ params }: StorePageProps) {
             </div>
           </div>
         </div>
-      </div>
+      </div>  
 
       {/* Store Description */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

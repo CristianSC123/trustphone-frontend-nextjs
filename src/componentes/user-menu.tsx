@@ -51,7 +51,18 @@ export default function UserMenu({ user, onLogout }: UserMenuProps) {
           <Link href="/mis-compras">
             <DropdownMenuItem>
               <ShoppingBag className="w-4 h-4 mr-2" />
-              Mis Compras y Reservas
+              Mis Compras
+              <DropdownMenuSeparator />
+            </DropdownMenuItem>
+          </Link>
+        }
+        <DropdownMenuSeparator />
+
+        {
+          <Link href="/mis-reservas">
+            <DropdownMenuItem>
+              <ShoppingBag className="w-4 h-4 mr-2" />
+              Mis Reservas
               <DropdownMenuSeparator />
             </DropdownMenuItem>
           </Link>

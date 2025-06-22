@@ -1,102 +1,155 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { X, Upload, QrCode, Calendar, Clock, CheckCircle, Shield } from "lucide-react"
-import Image from "next/image"
-import { useState } from "react"
-import type { Phone } from "@/../types/phone"
+import type React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  X,
+  Upload,
+  QrCode,
+  Calendar,
+  Clock,
+  CheckCircle,
+  Shield,
+} from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import type { Phone } from "@/../types/phone";
 
 interface ReservationModalProps {
-  isOpen: boolean
-  onClose: () => void
-  phone: Phone
+  isOpen: boolean;
+  onClose: () => void;
+  phone: Phone;
 }
 
-export default function ReservationModal({ isOpen, onClose, phone }: ReservationModalProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [uploadSuccess, setUploadSuccess] = useState(false)
-  const IMG_BASE_URL = process.env.NEXT_PUBLIC_IMG_BASE_URL || "http://localhost:8000"
+export default function ReservationModal({
+  isOpen,
+  onClose,
+  phone,
+}: ReservationModalProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const IMG_BASE_URL =
+    process.env.NEXT_PUBLIC_IMG_BASE_URL || "http://localhost:8000";
 
   const formatPrice = (price: string) => {
-    const numPrice = Number.parseFloat(price)
+    const numPrice = Number.parseFloat(price);
     return new Intl.NumberFormat("es-BO", {
       style: "currency",
       currency: "BOB",
       minimumFractionDigits: 0,
-    }).format(numPrice)
-  }
+    }).format(numPrice);
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
       // Validar tipo de archivo
       if (!file.type.startsWith("image/")) {
-        alert("Por favor selecciona solo archivos de imagen")
-        return
+        alert("Por favor selecciona solo archivos de imagen");
+        return;
       }
       // Validar tamaño (10MB max)
       if (file.size > 10 * 1024 * 1024) {
-        alert("El archivo es muy grande. Máximo 10MB")
-        return
+        alert("El archivo es muy grande. Máximo 10MB");
+        return;
       }
-      setSelectedFile(file)
-      setUploadSuccess(false)
+      setSelectedFile(file);
+      setUploadSuccess(false);
     }
-  }
+  };
 
   const handleSubmitReceipt = async () => {
-    if (!selectedFile) return
-
-    setUploading(true)
-
-    // Simular upload a la API
-    try {
-      // Aquí irías tu llamada real a la API
-      // const formData = new FormData()
-      // formData.append('comprobante', selectedFile)
-      // formData.append('celular_id', phone.id_celular)
-      // const response = await fetch('/api/reservas', { method: 'POST', body: formData })
-
-      // Simulación
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      setUploading(false)
-      setUploadSuccess(true)
-
-      // Mostrar mensaje de éxito por 2 segundos y luego cerrar
-      setTimeout(() => {
-        onClose()
-        setSelectedFile(null)
-        setUploadSuccess(false)
-        alert("¡Reserva exitosa! Te contactaremos pronto para confirmar la entrega.")
-      }, 2000)
-    } catch (error) {
-      setUploading(false)
-      alert("Error al enviar el comprobante. Inténtalo de nuevo." + error)
+    if (!selectedFile) {
+      alert("Por favor, selecciona un comprobante de pago");
+      return;
     }
-  }
+
+    setUploading(true);
+
+    const storedUser = localStorage.getItem("user_data");
+    if (!storedUser) {
+      alert(
+        "No se encontró información del usuario. Por favor, inicia sesión."
+      );
+      setUploading(false);
+      return;
+    }
+
+    try {
+      const userData = JSON.parse(storedUser);
+      const formData = new FormData();
+      formData.append("comprobante", selectedFile);
+      formData.append("celular", phone.id_celular);
+
+      // Construir URL completa
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const fullUrl = `${apiUrl}/api/reservas/${userData.id}/crear/`;
+
+      console.log("Intentando conectar a:", fullUrl); // Para debugging
+
+      const response = await fetch(fullUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        // Crear una copia de la respuesta para poder leerla dos veces
+        const clonedResponse = response.clone();
+
+        // Intentar obtener el error como JSON primero
+        try {
+          const errorData = await clonedResponse.json();
+          throw new Error(
+            errorData.detail || errorData.error || "Error al crear la reserva"
+          );
+        } catch {
+          // Si no es JSON, obtener el texto
+          const errorText = await response.text();
+          throw new Error(
+            `Error del servidor: ${errorText.substring(0, 100)}...`
+          );
+        }
+      }
+
+      setUploading(false);
+      setUploadSuccess(true);
+    } catch (error) {
+      setUploading(false);
+      const errorMessage =
+        error instanceof Error ? error.message : "Error desconocido";
+      alert(`Error al crear la reserva: ${errorMessage}`);
+      console.error("Error:", error);
+    }
+  };
 
   const handleClose = () => {
     if (!uploading) {
-      onClose()
-      setSelectedFile(null)
-      setUploadSuccess(false)
+      onClose();
+      setSelectedFile(null);
+      setUploadSuccess(false);
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900">Reservar Celular</h2>
-          <Button variant="ghost" size="sm" onClick={handleClose} className="p-1" disabled={uploading}>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Reservar Celular
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="p-1"
+            disabled={uploading}
+          >
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -109,8 +162,19 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">¡Comprobante Enviado!</h3>
-              <p className="text-gray-600">Tu reserva ha sido procesada exitosamente.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                ¡Tu reserva ha sido exitosa!
+              </h3>
+              <p className="text-gray-600">
+                Tu reserva ha sido procesada exitosamente.
+              </p>
+              <Button
+                className="flex-1 bg-blue-600 mt-4 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50"
+                variant="default"
+                onClick={() => (window.location.href = "/mis-reservas")}
+              >
+                Ver Reserva
+              </Button>
             </div>
           )}
 
@@ -128,15 +192,21 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
                       height={80}
                       className="rounded-lg object-cover"
                       onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg?height=80&width=80"
+                        e.currentTarget.src =
+                          "/placeholder.svg?height=80&width=80";
                       }}
                     />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{phone.modelo}</h3>
+                      <h3 className="font-semibold text-gray-900">
+                        {phone.modelo}
+                      </h3>
                       <p className="text-sm text-gray-600">
-                        {phone.color} • {phone.almacenamiento}GB • {phone.ram}GB RAM
+                        {phone.color} • {phone.almacenamiento}GB • {phone.ram}GB
+                        RAM
                       </p>
-                      <div className="text-lg font-bold text-blue-600 mt-1">{formatPrice(phone.precio)}</div>
+                      <div className="text-lg font-bold text-blue-600 mt-1">
+                        {formatPrice(phone.precio)}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -146,7 +216,9 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
               <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center mb-2">
                   <Calendar className="w-5 h-5 text-blue-600 mr-2" />
-                  <h3 className="font-semibold text-blue-900">Instrucciones de Reserva</h3>
+                  <h3 className="font-semibold text-blue-900">
+                    Instrucciones de Reserva
+                  </h3>
                 </div>
                 <div className="text-sm text-blue-800 space-y-1">
                   <div className="flex items-center">
@@ -155,7 +227,9 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
                   </div>
                   <div className="flex items-center">
                     <Shield className="w-4 h-4 mr-2" />
-                    <span className="font-bold italic">Nota: Las reservas solo se hacen con un adelanto de Bs 100</span>
+                    <span className="font-bold italic">
+                      Nota: Las reservas solo se hacen con un adelanto de Bs 100
+                    </span>
                   </div>
                 </div>
               </div>
@@ -164,7 +238,9 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
               <div className="mb-6">
                 <div className="flex items-center mb-3">
                   <QrCode className="w-5 h-5 text-gray-700 mr-2" />
-                  <h3 className="font-semibold text-gray-900">Escanea el QR para pagar</h3>
+                  <h3 className="font-semibold text-gray-900">
+                    Escanea el QR para pagar
+                  </h3>
                 </div>
 
                 <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -177,7 +253,9 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
                       className="rounded-lg"
                     />
                   </div>
-                  <Badge className="bg-green-100 text-green-700">Monto: {formatPrice(phone.precio)}</Badge>
+                  <Badge className="bg-green-100 text-green-700">
+                    Monto: Bs 100
+                  </Badge>
                 </div>
               </div>
 
@@ -199,11 +277,15 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
                   />
                   <label
                     htmlFor="receipt-upload"
-                    className={`cursor-pointer ${uploading ? "pointer-events-none" : ""}`}
+                    className={`cursor-pointer ${
+                      uploading ? "pointer-events-none" : ""
+                    }`}
                   >
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-600 mb-1">
-                      {selectedFile ? selectedFile.name : "Haz clic para subir tu comprobante"}
+                      {selectedFile
+                        ? selectedFile.name
+                        : "Haz clic para subir tu comprobante"}
                     </p>
                     <p className="text-xs text-gray-500">PNG, JPG hasta 10MB</p>
                   </label>
@@ -213,7 +295,9 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
                   <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center text-green-700">
                       <Upload className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium">Archivo seleccionado: {selectedFile.name}</span>
+                      <span className="text-sm font-medium">
+                        Archivo seleccionado: {selectedFile.name}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -221,7 +305,12 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <Button variant="outline" onClick={handleClose} className="flex-1" disabled={uploading}>
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="flex-1"
+                  disabled={uploading}
+                >
                   Cancelar
                 </Button>
                 <Button
@@ -243,7 +332,10 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
               {/* Contact Info */}
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                 <p className="text-xs text-gray-600 text-center">
-                  ¿Tienes dudas? Contáctanos al <span className="font-semibold text-blue-600">+591 70123456</span>
+                  ¿Tienes dudas? Contáctanos al{" "}
+                  <span className="font-semibold text-blue-600">
+                    +591 70123456
+                  </span>
                 </p>
               </div>
             </>
@@ -251,5 +343,5 @@ export default function ReservationModal({ isOpen, onClose, phone }: Reservation
         </div>
       </div>
     </div>
-  )
+  );
 }
